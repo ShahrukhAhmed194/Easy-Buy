@@ -27,6 +27,15 @@
             </button>
         </div>
     @enderror
+
+    @error('images.*')
+        <div class="sufee-alert alert with-close alert-danger alert-dismissible fade show">
+            {{$message}}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @enderror
     <a href="{{url('admin/product')}}" class="col-6">
     <button type="button" class="btn btn-success float-right">
         Back
@@ -88,8 +97,18 @@
                                 </div>
 
                                 <div class="form-group col-md-4">
-                                    <label for="brand" class="control-label mb-1">Brand</label>
-                                    <input id="brand" value="{{$brand}}"name="brand" type="text" class="form-control" aria-required="true" aria-invalid="false" required>
+                                <label for="brand" class="control-label mb-1">Brand</label>
+                                <select id="brand" name="brand" class="form-control" required>
+                                <option value="">Select Brand</option>
+                                    @foreach($brands as $list)
+                                        @if($brand == $list->id)
+                                            <option selected value="{{$list->id}}">
+                                        @else
+                                            <option value="{{$list->id}}">
+                                        @endif
+                                        {{$list->name}}</option>
+                                    @endforeach
+                                    </select>
                                 </div>
 
                                 <div class="form-group col-md-4">
@@ -135,7 +154,52 @@
                         </div>
                     </div>
                 </div>
-                <h2 class="m-l-15">Products Attributes</h2>
+
+                <h2 class="m-l-15">Product Images</h2>
+                <div class="col-lg-12" > {{--id="product_images_box"--}}
+                    <div class="card">
+                        <div class="card-body">
+                           <div class="form-group">    
+                                <div class="row"  id="product_images_box">
+                                <?php
+                                $loop_count_num=1;
+                                ?>
+                                @foreach($productImagesArr as $key=>$val)
+                                    <?php
+                                    $loop_count_prev=$loop_count_num;
+                                    // type casting obj->arr
+                                    $pIArr = (array)$val;
+                                    
+                                    ?>
+                                    <input id="piid" type="hidden" name="piid[]" value="{{$pIArr['id']}}">
+                    
+                                    <div class="form-group col-md-4" class="product_images_{{$loop_count_num++}}">
+                                        <label for="images" class="control-label mb-1">Image</label>
+                                        <input id="images" name="images[]" type="file" class="form-control" aria-required="true" aria-invalid="false">
+                                        @if($pIArr['images']!='')
+                                            <a href="{{asset('storage/media')}}/{{$pIArr['images']}}" target="_blank"><img width="100px" src="{{asset('storage/media/'.$pIArr['images'])}}"  alt="Picture"></a>  
+                                            <!--must do storage:link -->
+                                        @endif
+                                    </div>
+
+                                    <div class="col-md-2" >
+                                        <label for="images" class="control-label mb-1">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                        @if($loop_count_num==2)
+                                            <button type="button" class="btn btn-success btn-lg " onclick="add_more_image()"> <i class="fa fa-plus"></i>&nbsp; Add</button>
+                                        @else
+                                            <a href="{{url('admin/product/product_images_delete/')}}/{{$pIArr['id']}}/{{$id}}">
+                                            <button type="button" class="btn btn-danger btn-lg " onclick="remove({{$loop_count_prev}})"> <i class="fa fa-minus"></i>&nbsp; Remove</button>
+                                            </a>
+                                            @endif
+                                    </div>
+                                @endforeach
+                                </div>
+                           </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="m-l-15">Products Attributes </h2>
                 <div class="col-lg-12" id="product_attr_box">
                     <?php
                      $loop_count_num=1;
@@ -279,5 +343,19 @@
         jQuery('#product_attr_'+loop_count).remove();
     }
 
+    var loop_image_count = 1;
+    function add_more_image(){
+        loop_image_count++;
+        var html='<input id="piid" type="hidden" name="piid[]" value=""><div class="form-group col-md-4 product_images_'+loop_image_count+'" ><label for="images" class="control-label mb-1">Image</label><input id="images" name="images[]" type="file" class="form-control" aria-required="true" aria-invalid="false" required></div>';
+        html+='<div class="col-md-2 product_images_'+loop_image_count+'"><label for="attr_image" class="control-label mb-1">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label><button type="button" class="btn btn-danger btn-lg " onclick=remove_image("'+loop_image_count+'")> <i class="fa fa-minus"></i>&nbsp; Remove</button></div>';
+        
+        jQuery('#product_images_box').append(html);
+    
+    }
+
+    function remove_image(loop_image_count){
+        jQuery('.product_images_'+loop_image_count).remove();
+
+    }
 </script>
 @endsection

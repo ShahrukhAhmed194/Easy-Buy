@@ -37,6 +37,17 @@ class ProductController extends Controller
 
             $result['productAttrArr']=DB::table('products_attr')->
                     where(['products_id'=>$id])->get();
+
+            $productImagesArr=DB::table('product_images')->
+                    where(['products_id'=>$id])->get();
+
+                
+            if(!isset($productImagesArr[0])){
+                $result['productImagesArr'][0]['id']='';
+                $result['productImagesArr'][0]['images']='';
+            }else{
+                $result['productImagesArr']=$productImagesArr;
+            }
         }else{
             $result['category_id'] = '';
             $result['name'] = '';
@@ -63,8 +74,19 @@ class ProductController extends Controller
             $result['productAttrArr'][0]['size_id']='';
             $result['productAttrArr'][0]['color_id']='';
 
+            $result['productImagesArr'][0]['id']='';
+            $result['productImagesArr'][0]['images']='';
+
+
+            /*echo '<pre>';
+            print_r($result['product_attr']);
+            die();
+            */
 
         }
+            /* echo '<pre>';
+             print_r($result);
+             die();*/
         // get all data from DB table
         $result['category']=DB::table('categories')->where(
             ['status'=>1])->get();
@@ -73,6 +95,9 @@ class ProductController extends Controller
             ['status'=>1])->get();
 
         $result['colors']=DB::table('colors')->where(
+            ['status'=>1])->get();
+
+        $result['brands']=DB::table('brands')->where(
             ['status'=>1])->get();
 
         return view('admin/manage_product',$result);
@@ -100,10 +125,11 @@ class ProductController extends Controller
             'name' => 'required',
             'image' => $image_validatin,
             'slug' => 'required|unique:products,slug,'.$request->post('id'),//unique:tableName
-            'attr_image.*' =>'mimes:jpg,jpeg,png'    //attr_img is array, needs * for validation
+            'attr_image.*' =>'mimes:jpg,jpeg,png',    //attr_img is array, needs * for validation
+            'images.*' =>'mimes:jpg,jpeg,png'
             ]);
 
-         $paidArr=$request->post('paid');
+            $paidArr=$request->post('paid');
             $skuArr=$request->post('sku');
             $mrpArr=$request->post('mrp');
             $priceArr=$request->post('price');
@@ -163,9 +189,9 @@ class ProductController extends Controller
             foreach($skuArr as $key=>$val){
                 $productAttrArr['products_id']=$pid;
                 $productAttrArr['sku']=$skuArr[$key];
-                $productAttrArr['mrp']=$mrpArr[$key];
-                $productAttrArr['price']=$priceArr[$key];
-                $productAttrArr['qty']=$qtyArr[$key];
+                $productAttrArr['mrp']=(int)$mrpArr[$key]; //type casting
+                $productAttrArr['price']=(int)$priceArr[$key];
+                $productAttrArr['qty']=(int)$qtyArr[$key];
                 if($size_idArr[$key]==''){
                     $productAttrArr['size_id']=0;
                 }else{
@@ -190,6 +216,7 @@ class ProductController extends Controller
                     $productAttrArr['attr_image']='';
                 }
 
+                //upload attributes
                 if($paidArr[$key]!=''){
                 DB::table('products_attr')->where(['id'=>$paidArr[$key]])->update($productAttrArr);
                 }else{
@@ -197,9 +224,35 @@ class ProductController extends Controller
                 }
             }
 
-          /* Product Attr insertion end*/
+        /* Product Attr insertion end*/
+
+          /* Product Images Insertion start*/
+          $piidArr=$request->post('piid');
+          foreach($piidArr as $key=>$val){
+            $productImageArr['products_id']=$pid;
+            if($request->hasFile("images.$key")){
+                $rand = rand('111111','999999');
+                $images=$request->file("images.$key");
+                $ext = $images->extension();
+                $image_name = $rand.'.'.$ext;
+                $request->file("images.$key")->
+                storeAs('/public/media',$image_name);
+                $productImageArr['images']=$image_name;
+            
+                if($piidArr[$key]!=''){
+                    DB::table('product_images')->where(['id'=>$piidArr[$key]])->update($productImageArr);
+    
+                }else{
+                    DB::table('product_images')->insert($productImageArr);
+                }
+            }  
+            
+        }
+          /* Product Images Insertion end*/
+
          $request->session()->flash('message',$msg);
          return redirect('admin/product');
+        
     }    
 
     public function delete(Request $request, $id)
@@ -215,6 +268,13 @@ class ProductController extends Controller
     public function product_attr_delete(Request $request, $paid, $pid)
     {
        DB::table('products_attr')->where(['id'=>$paid])->delete();
+       
+       return redirect('admin/product/manage_product/'.$pid);
+    }
+
+    public function product_images_delete(Request $request, $paid, $pid)
+    {
+       DB::table('product_images')->where(['id'=>$paid])->delete();
        
        return redirect('admin/product/manage_product/'.$pid);
     }

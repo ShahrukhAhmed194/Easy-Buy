@@ -64,6 +64,10 @@
                             
                         </li>
                         <li>
+                            <a href="{{url('admin/brand')}}">
+                            <i class="fa fa-mobile"></i>Brand</a>  
+                        </li>
+                        <li>
                             <a href="{{url('admin/color')}}">
                                 <i class="fas fa-paint-brush"></i>Color</a>
                             
@@ -109,6 +113,10 @@
                                 <i class="fas fa-window-maximize"></i>Size</a>
                             
                         </li>
+                        <li class="@yield('brand_select')">
+                            <a href="{{url('admin/brand')}}">
+                            <i class="fab fa-accusoft"></i>Brand</a>  
+                        </li>
                         <li class="@yield('color_select')">
                             <a href="{{url('admin/color')}}">
                                 <i class="fas fa-paint-brush"></i>Color</a>
@@ -116,7 +124,7 @@
                         </li>
                         <li class="@yield('product_select')">
                             <a href="{{url('admin/product')}}">
-                            <i class="fab fa-accusoft"></i>Product</a>  
+                            <i class="fab fa-pinterest-p"></i>Product</a>  
                         </li>
                     </ul>
                 </nav>
